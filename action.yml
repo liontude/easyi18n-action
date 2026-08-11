@@ -1,0 +1,64 @@
+name: easyi18n sync
+description: >-
+  Continuous i18n for file-first projects: sync your translation catalog with
+  easyi18n and open a pull request with the translations.
+branding:
+  icon: globe
+  color: blue
+
+inputs:
+  token:
+    description: >-
+      easyi18n API key (eik_) with the read, translate and publish scopes.
+      Store it as a repository secret.
+    required: true
+  config-path:
+    description: Path to easyi18n.yaml.
+    required: false
+    default: easyi18n.yaml
+  max-credits:
+    description: Abort if the estimated translation cost exceeds this many credits.
+    required: false
+    default: ''
+  cli-version:
+    description: easyi18n_cli version to install.
+    required: false
+    default: 0.8.0
+  github-token:
+    description: Token used to open the pull request.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - uses: dart-lang/setup-dart@v1
+      with:
+        sdk: stable
+
+    - name: Install easyi18n_cli
+      shell: bash
+      run: dart pub global activate easyi18n_cli '${{ inputs.cli-version }}'
+
+    - name: Sync the catalog
+      shell: bash
+      env:
+        EASYI18N_TOKEN: ${{ inputs.token }}
+      run: >-
+        dart pub global run easyi18n_cli:easyi18n
+        --config '${{ inputs.config-path }}'
+        sync --yes
+        ${{ inputs.max-credits != '' && format('--max-credits {0}', inputs.max-credits) || '' }}
+
+    # No diff → no PR (this step no-ops on a clean tree), so a run that
+    # changed nothing terminates silently — including the run triggered by
+    # merging this action's own PR.
+    - uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ inputs.github-token }}
+        branch: easyi18n/sync
+        commit-message: 'chore(i18n): sync translations'
+        title: 'chore(i18n): sync translations'
+        body: >-
+          Automated translation sync from [easyi18n](https://easyi18n.com).
+          Review the diff and merge.
