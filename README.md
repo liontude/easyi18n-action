@@ -30,6 +30,7 @@ nothing to run locally.
      push:
        branches: [main]
        paths: ['**/*.xcstrings']
+     workflow_dispatch:  # pick up dashboard-side changes (new language, edits) on demand
    concurrency: { group: easyi18n-sync, cancel-in-progress: false }
    permissions: { contents: write, pull-requests: write }
    jobs:
