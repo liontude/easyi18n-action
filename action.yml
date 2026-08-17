@@ -23,7 +23,7 @@ inputs:
   cli-version:
     description: easyi18n_cli version to install.
     required: false
-    default: 0.8.1
+    default: 0.9.0
   github-token:
     description: Token used to open the pull request.
     required: false
