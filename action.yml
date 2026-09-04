@@ -32,9 +32,16 @@ inputs:
 runs:
   using: composite
   steps:
+    # `problem-matcher: false` on purpose. setup-dart 1.8 registers its
+    # `dart analyze` matcher from `$GITHUB_ACTION_PATH`, and inside a
+    # composite action that variable points at *this* action, where the file
+    # does not exist — the step fails before installing anything
+    # (dart-lang/setup-dart#198). This action never runs the analyzer, so the
+    # matcher is dead weight anyway.
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: stable
+        problem-matcher: false
 
     - name: Install easyi18n_cli
       shell: bash
